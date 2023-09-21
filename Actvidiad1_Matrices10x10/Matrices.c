@@ -8,6 +8,7 @@ int main() {
     int matrizB[10][10];
     int matrizAB[10][10];
 
+    printf("Matriz A\n");
     for (int i = 0; i < 10; ++i) {
         for (int j = 0; j < 10; ++j) {
 
@@ -18,7 +19,7 @@ int main() {
         printf("\n");
     }
 
-    printf("\n");
+    printf("Matriz B\n");
 
     for (int i = 0; i < 10; ++i) {
         for (int j = 0; j < 10; ++j) {
@@ -30,7 +31,7 @@ int main() {
         printf("\n");
     }
 
-    printf("\n");
+    printf("Matriz AB resultado de la multiplicacion de las 2 anteriores\n");
 
     for (int i = 0; i < 10; ++i) {
         for (int j = 0; j < 10; ++j) {
