@@ -66,3 +66,23 @@ int main() {
     return 0;
 }
 ```
+#Análisis de complejidad temporal
+
+##Generación de la matriz A y B:
+
+Hay dos bucles anidados (for) que recorren la matriz de tamaño 10x10.
+En cada iteración, se genera un número aleatorio y se asigna a la matriz.
+Cada bucle realiza 10x10 = 100 iteraciones.
+La complejidad temporal de esta parte es O(100), que se simplifica a O(1) porque el número de iteraciones es constante y no depende del tamaño de la matriz.
+
+##Multiplicación de matrices (matrizAB):
+
+Hay tres bucles anidados (for) que recorren la matriz de tamaño 10x10.
+El bucle más interno realiza multiplicaciones y sumas.
+Cada bucle externo realiza 10 iteraciones.
+La complejidad temporal de esta parte es O(10 * 10 * 10) = O(1000).
+
+##Conclusion
+En resumen, la complejidad temporal total del código es O(1) para la generación de las matrices A y B, y O(1000) para la multiplicación de las matrices. Dado que la multiplicación de matrices tiene una complejidad dominante, podemos decir que la complejidad temporal general del código es O(1000), que se puede simplificar como O(n^3), donde n es el tamaño de las matrices (en este caso, n = 10).
+
+Entonces, la complejidad temporal de este código es cúbica en relación al tamaño de las matrices. Esto significa que el tiempo de ejecución aumentará significativamente a medida que aumente el tamaño de las matrices.
