@@ -5,6 +5,7 @@ Este solo necista de ser ejecutado y procedera a imprimir en la cosola 3 matrice
 Las primeras 2 son matrices con numeros aletorios y la tercera es el resultado de la multiplicacion de las primeras 2 
 
 # Marco teorico
+
 Una matriz es una estructura de datos que organiza números, letras u otros valores en filas y columnas, formando una cuadrícula. Cada elemento dentro de la matriz tiene una ubicación específica, identificada por su fila y columna.
 La multiplicación de matrices consiste en combinar linealmente dos o más matrices mediante la adición de sus elementos dependiendo de su situación dentro de la matriz origen respetando el orden de los factores. 
 Ejemplo de una multiplicacion de matriz 
