@@ -1,4 +1,4 @@
-#1.- Introduction to GPU Kernels and Hardware
+# 1.- Introduction to GPU Kernels and Hardware
 
 ##1.1 Background
 En este capítulo se nos menciona la importancia de que nuestros códigos se puedan ejecutar de forma paralela en nuestra computadora y como con herramientas como los hilos C++ es posible realizar esto mediante la cpu, más sin embargo el CPU tiene sus límites siendo que para poder aumentar la velocidad de nuestro equipo un doscientos por ciento se requerirá de grandes costos. Aquí es donde entra la GPU con CUDA de NVIDIA un lenguaje de programación que nos permite gestionar la GPU para alcanzar así ese aumento de 200 por ciento con una sola tarjeta gráfica gracias  que su memoria interna es aproximadamente 10 veces más rápida que la de una PC típica, lo cual es extremadamente útil para problemas limitados por el ancho de banda de memoria en lugar de la potencia de la CPU. Por último se nos habla un poco de los ejemplos que veremos más adelante y como estos ejemplos son mejores en este libro que en otros debido a que son interesantes de problemas del mundo real.
