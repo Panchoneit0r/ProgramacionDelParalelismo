@@ -72,6 +72,7 @@ El tercer capítulo del libro se centra en el modelo de ejecución CUDA. Comienz
 En el Capítulo 4, exploramos el modelo de memoria CUDA y aprendimos cómo administrar la memoria CUDA. Discutimos la programación con memoria global y examinamos los patrones de acceso a la memoria global. También probamos el diseño de datos de la memoria global y analizamos las implicaciones de rendimiento de diferentes patrones de acceso a la memoria.
 Un concepto importante que cubrimos en este capítulo es la importancia de maximizar el rendimiento de la memoria global. Aprendimos que para mejorar la utilización del ancho de banda, debemos intentar maximizar la cantidad de accesos simultáneos a la memoria en vuelo y la utilización de bytes que viajan entre la memoria global y la memoria en el chip.
 También analizamos los beneficios de la Memoria Unificada, una característica introducida en CUDA 6.0. La memoria unificada simplifica la programación CUDA al eliminar la necesidad de transferencias de datos explícitas entre el host y el dispositivo. Sin embargo, prioriza la coherencia sobre el desempeño.
+
 Me agrado mas este libro pues lo siento más detallado que el anterior y menos saturado que el libro pasado que lo sentí con demasiados ejemplos y siendo muy pesado de leer
 
 # Referencia:
