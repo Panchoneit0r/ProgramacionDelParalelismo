@@ -37,6 +37,23 @@
 **cudaDeviceSynchronize:** Esta función bloquea la CPU hasta que todas las tareas previamente emitidas en el dispositivo hayan completado. Esta función tomó el 0.11% del tiempo total de las llamadas a la API.
 **cudaLaunchKernel:** Esta función lanza un kernel CUDA en el dispositivo. Esta función tomó el 0.03% del tiempo total de las llamadas a la API.
 
+Este código en CUDA ilustra cómo las lecturas desalineadas afectan el rendimiento al provocar dichas lecturas en un float*. También incluye núcleos que minimizan este impacto al desenrollar bucles. Aquí se presenta una explicación detallada:
+
+1. Se configura el dispositivo CUDA con cudaSetDevice(dev).
+2. Se define el tamaño de la memoria asignada en el host y en el dispositivo, determinado por nElem (configurado en LEN).
+3. Se obtienen e imprimen las propiedades del dispositivo CUDA mediante cudaGetDeviceProperties().
+4. Se asigna memoria en el host (CPU) usando malloc().
+5. La memoria del host se inicializa con valores aleatorios mediante inicialInnerStruct().
+6. Se realiza una operación de suma en el host con sumArraysOnHost().
+7. Se asigna memoria en el dispositivo (GPU) mediante cudaMalloc().
+8. Los datos se copian del host al dispositivo con cudaMemcpy().
+9. Se ejecutan cuatro núcleos: warmup(), readOffset(), readOffsetUnroll2() y readOffsetUnroll4(). El kernel warmup() calienta la GPU, readOffset() mide el impacto de las lecturas desalineadas en el rendimiento, y los kernels readOffsetUnroll2() y readOffsetUnroll4() utilizan desenrollado de bucles para reducir dicho impacto.
+10. Los resultados se copian del dispositivo al host con cudaMemcpy().
+11. Se verifica si los resultados coinciden entre el dispositivo y el host mediante checkInnerStruct().
+12. Finalmente, se libera la memoria asignada en el host y el dispositivo con free() y cudaFree(), y se restablece el dispositivo con cudaDeviceReset().
+
+El parámetro offset, que puede pasarse como argumento de línea de comandos, fuerza lecturas desalineadas. Estas ocurren cuando la dirección inicial de los datos leídos no es divisible por el tamaño del tipo de datos, lo que puede degradar el rendimiento al requerir transacciones de memoria adicionales. El desenrollado de bucles es una técnica que mitiga este impacto al permitir que la GPU fusione múltiples lecturas desalineadas en una sola lectura alineada.
+
 # simpleMathSoA
 ~~~
 ==1027== NVPROF is profiling process 1027, command: ./simpleMathSoA
@@ -73,6 +90,20 @@
 **cudaDeviceReset:** Función para reiniciar el dispositivo (la GPU). Esta función tomó el 5.47% del tiempo total de las llamadas a la API.
 **cudaMemcpy:** Función para copiar datos entre el host y el device. Esta función tomó el 2.89% del tiempo total de las llamadas a la API.
 
+Este código en CUDA ilustra cómo emplear estructuras en la programación de GPU. Aquí se presenta una descripción detallada:
+
+1. Se configura el dispositivo CUDA con cudaSetDevice(dev).
+2. Se define el tamaño de la memoria que se asignará tanto en el host como en el dispositivo, utilizando nElem que se establece en LEN.
+3. Se obtienen e imprimen las propiedades del dispositivo CUDA mediante cudaGetDeviceProperties().
+4. Se asigna memoria en el host (CPU) mediante malloc().
+5. La memoria del host se inicializa con valores aleatorios utilizando inicialInnerArray().
+6. Se realiza una operación de suma en el host mediante testInnerArrayHost().
+7. Se asigna memoria en el dispositivo (GPU) con cudaMalloc().
+8. Los datos se copian del host al dispositivo mediante cudaMemcpy().
+9. Se ejecutan dos núcleos: warmup2() y testInnerArray(). El kernel warmup2() calienta la GPU, y el kernel testInnerArray() mide el impacto en el rendimiento de las lecturas desalineadas al realizar la misma operación de suma en el dispositivo.
+10. Los resultados se copian desde el dispositivo al host mediante cudaMemcpy().
+11. Se verifica si los resultados obtenidos del dispositivo coinciden con los resultados obtenidos del host utilizando checkInnerArray().
+
 # sumArrayZerocpy
 ~~~
 ==1049== NVPROF is profiling process 1049, command: ./sumArrayZerocpy
@@ -108,6 +139,26 @@
 **[CUDA memcpy HtoD]:** Copia de memoria de Host a Device. Esta actividad tomó el 21.82% del tiempo total de las actividades de la GPU.
 **cudaHostAlloc:** Esta función se utiliza para asignar memoria en el host que será accesible desde el dispositivo. Esta función tomó el 0.16% del tiempo total de las llamadas a la API.
 **cudaFreeHost:** Esta función libera la memoria que previamente fue asignada con cudaHostAlloc. Esta función tomó el 0.06% del tiempo total de las llamadas a la API.
+
+
+Este código en CUDA demuestra la utilización de memoria de copia cero en la programación de GPU. Aquí se presenta una explicación detallada:
+
+1. Se configura el dispositivo CUDA con cudaSetDevice(dev).
+2. Se define el tamaño de la memoria que se asignará tanto en el host como en el dispositivo, utilizando nElem que se establece en LEN.
+3. Se obtienen e imprimen las propiedades del dispositivo CUDA mediante cudaGetDeviceProperties().
+4. Se asigna memoria en el host (CPU) mediante malloc().
+5. La memoria del host se inicializa con valores aleatorios mediante initialData().
+6. Se realiza una operación de suma en el host mediante sumArraysOnHost().
+7. Se asigna memoria en el dispositivo (GPU) con cudaMalloc().
+8. Los datos se copian del host al dispositivo mediante cudaMemcpy().
+9. Se ejecutan dos núcleos: warmup() y sumArrays(). Ambos realizan la misma operación de suma en el dispositivo.
+10. Los resultados se copian desde el dispositivo al host mediante cudaMemcpy().
+11. Se verifica si los resultados obtenidos del dispositivo coinciden con los resultados obtenidos del host mediante checkResult().
+12. Se libera la memoria asignada tanto en el host como en el dispositivo utilizando free() y cudaFree().
+13. Se asigna memoria de copia cero en el host utilizando cudaHostAlloc().
+14. La memoria del host se inicializa con valores aleatorios mediante initialData().
+15. Se obtienen punteros de dispositivo a la memoria del host mediante cudaHostGetDevicePointer().
+16. Se ejecuta el kernel sumArraysZeroCopy(), que realiza la operación de suma en el dispositivo utilizando la memoria de copia cero.
 
 ~~~
 ==1049== NVPROF is profiling process 1049, command: ./sumArrayZerocpy
@@ -164,6 +215,18 @@
 **sumMatrixGPU:** Esta es una función (kernel) que se ejecuta en la GPU, como su nombre lo dice se encarga de hacer la suma de matrices. Esta actividad tomó el 100% del tiempo total de las actividades de la GPU debido a que es la unica funcion que se utiliza siendo llamda 2 veces.
 **cudaMallocManaged:** Esta función se utiliza para asignar memoria en la GPU y el host de manera que ambos pueden acceder a ella. Esta función tomó el 91.39% del tiempo total de las llamadas a la API.
 
+Este código en CUDA demuestra el uso de la memoria unificada en la programación de GPU. A continuación, se presenta una descripción detallada:
+
+1. Se configura el dispositivo CUDA con cudaSetDevice(dev).
+2. Se define el tamaño de la memoria que se asignará tanto en el host como en el dispositivo, utilizando nElem que se establece en LEN.
+3. Se obtienen e imprimen las propiedades del dispositivo CUDA mediante cudaGetDeviceProperties().
+4. Se asigna memoria unificada en el host mediante cudaMallocManaged().
+5. La memoria del host se inicializa con valores aleatorios mediante initialData().
+6. Se realiza una operación de suma en el host mediante sumMatrixOnHost().
+7. Se ejecutan dos núcleos: warmup() y sumMatrixGPU(). El kernel warmup() calienta la GPU, y el kernel sumMatrixGPU() realiza la misma operación de suma en el dispositivo para medir el impacto en el rendimiento de las lecturas desalineadas.
+8. Se verifica si los resultados obtenidos del dispositivo coinciden con los resultados obtenidos del host mediante checkResult().
+9. Se libera la memoria asignada tanto en el host como en el dispositivo utilizando cudaFree(), y se restablece el dispositivo mediante cudaDeviceReset().
+
 # sumMatrixGPUManual
 ~~~
 ==1089== NVPROF is profiling process 1089, command: ./sumMatrixGPUManual
@@ -198,6 +261,9 @@
 **sumMatrixGPU:** Esta es una función (kernel) que se ejecuta en la GPU, en encarga de hacer la suma de matrices. Esta actividad tomó el 2.69% del tiempo total de las actividades de la GPU.
 **[CUDA memset]:** Esta función se utiliza para establecer la memoria del dispositivo a un valor específico. Esta función tomó el 1.16% del tiempo total de las actividades de la GPU.
 Las demas son apis explicadas anteoriomente 
+
+Este programa CUDA utiliza la paralelización en GPU para sumar matrices de forma eficiente. Configura el dispositivo CUDA y asigna memoria en el host y dispositivo. Inicializa los datos en el host y realiza la suma en CPU. Copia los datos a la GPU, lanza un kernel que ejecuta la suma en paralelo en la GPU utilizando una cuadrícula de bloques 2D. Copia los resultados a CPU y verifica que coincidan. Al final, libera la memoria y restablece el dispositivo. La suma en paralelo en GPU con cuadrículas y bloques 2D permite un cálculo de matrices mucho más rápido que en CPU.
+
 # transpose
 ~~~
 ==1111== NVPROF is profiling process 1111, command: ./transpose
@@ -267,6 +333,14 @@ Las demas son apis explicadas anteoriomente
 **warmup:** Esta es otra función (kernel) que se ejecuta en la GPU. Esta actividad tomó el 1.49% del tiempo total de las actividades de la GPU.
 **writeOffsetUnroll2** y **writeOffsetUnroll4**: Estas son funciones (kernels) que se ejecutan en la GPU. Estas actividades tomaron el 0.91% y el 0.72% del tiempo total de las actividades de la GPU, respectivamente.
 **cudaMalloc:** Función para asignar memoria en la GPU. Esta función tomó el 92.61% del tiempo total de las llamadas a la API.
+
+Este programa CUDA muestra cómo utilizar el desplazamiento de memoria y el desenrollado de bucles para optimizar el rendimiento en GPU. 
+
+1. Configura el dispositivo CUDA, asigna memoria en host y device, inicializa datos en host y realiza la suma en CPU. 
+2. Copia datos a GPU, ejecuta kernels que realizan la suma en paralelo en GPU utilizando desplazamiento de memoria para acceder a datos con eficiencia.
+3. Usa diferentes grados de desenrollado de bucles en los kernels para incrementar el paralelismo y mejorar rendimiento. 
+4. Compara resultados de CPU y GPU. Al final, libera memoria y restablece dispositivo.
+5. El desplazamiento de memoria y desenrollado de bucles permiten un mejor aprovechamiento de la arquitectura paralela de la GPU para acelerar cálculos como suma de matrices.
 
 # memTransfer
 ~~~
@@ -359,6 +433,16 @@ Las demas son apis explicadas anteoriomente
 **warmup:** Esta es otra función (kernel) que se ejecuta en la GPU. Esta actividad tomó el 2.40% del tiempo total de las actividades de la GPU.
 **cudaMalloc:** Función para asignar memoria en la GPU. Esta función tomó el 93.88% del tiempo total de las llamadas a la API.
 
+Este programa CUDA demuestra el impacto negativo en rendimiento de lecturas de memoria no alineadas en GPU. 
+
+1. Configura dispositivo CUDA, asigna memoria en host y device, inicializa datos en host.
+2. Copia datos a GPU, ejecuta kernels que suman vectores en paralelo. 
+3. Uno de los kernels fuerza lecturas no alineadas. 
+4. Compara tiempos de ejecución entre lecturas alineadas y no alineadas.
+5. Las lecturas no alineadas requieren transacciones de memoria adicionales que degradan rendimiento.
+6. La GPU funciona mejor con accesos alineados debido a su arquitectura paralela.
+7. El programa muestra experimentalmente cómo alinear datos en memoria mejora rendimiento en GPU.
+
 # readSegmentUnroll
 ~~~
 ==985== NVPROF is profiling process 985, command: ./readSegmentUnroll
@@ -398,3 +482,15 @@ Las demas son apis explicadas anteoriomente
 **warmup:** Esta es otra función (kernel) que se ejecuta en la GPU. Esta actividad tomó el 1.49% del tiempo total de las actividades de la GPU.
 **readOffsetUnroll2** y **readOffsetUnroll4**: Estas son funciones (kernels) que se ejecutan en la GPU. Estas actividades tomaron el 1.54% y el  1.56% del tiempo total de las actividades de la GPU, respectivamente.
 **cudaMalloc:** Función para asignar memoria en la GPU. Esta función tomó el 93.30% del tiempo total de las llamadas a la API.
+
+Este programa CUDA muestra técnicas para mitigar el impacto de lecturas de memoria no alineadas en GPU.
+
+1. Configura dispositivo CUDA, asigna memoria en host y device, inicializa datos en host.  
+2. Copia datos a GPU, ejecuta kernels que suman vectores en paralelo.
+3. Uno de los kernels fuerza lecturas no alineadas. 
+4. Otros kernels usan desenrollado de bucles para fundir lecturas no alineadas.
+5. Compara tiempos entre lecturas alineadas, no alineadas y mitigación con desenrollado.
+6. Las lecturas no alineadas degradan rendimiento en GPU. 
+7. El desenrollado de bucles permite fundir múltiples lecturas no alineadas en una sola lectura alineada.
+8. Esto reduce el impacto negativo de lecturas no alineadas en GPU.
+9. El programa muestra experimentalmente estos conceptos de optimización de memoria.
