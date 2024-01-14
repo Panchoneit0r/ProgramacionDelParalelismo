@@ -1,93 +1,53 @@
-# Data parallel computing
+# Scalable parallel execution
 
-Este documento analiza específicamente la computación paralela de datos utilizando CUDA C. Cubre la estructura de los programas CUDA C, incluidas las funciones del kernel y la transferencia de datos. El capítulo también menciona la disponibilidad de herramientas y soporte para diferentes lenguajes de programación y API dentro de la plataforma CUDA.
+El contenido general del documento se centra en discutir los conceptos de recursos, capacidades y ejecución paralela en el contexto de los sistemas informáticos. Proporciona ejemplos de la vida cotidiana, como servicios de hoteles y escenarios de oficinas de correos, para explicar estos conceptos. El documento también incluye ejercicios relacionados con bloques de subprocesos, dimensiones de cuadrícula y tolerancia de latencia. El propósito del documento es educar a los lectores sobre la importancia de comprender los recursos y capacidades en diversos entornos y cómo se relacionan con la ejecución paralela en sistemas informáticos.
 
-## 2.1 Data Parallelism 
+## 3.1 CUDA Thread Organization 
 
-En el capítulo se nos enseña el concepto de paralelismo de datos en el contexto de las aplicaciones de software modernas. Explica que cuando las aplicaciones se ejecutan lentamente, a menudo se debe a que tienen demasiados datos para procesar.
+Este capítulo trata sobre el acceso a datos multidimensionales en CUDA. Explica la organización de los subprocesos dentro de un bloque y cómo cada threadIdx consta de tres campos: threadIdx.x, threadIdx.y y threadIdx.z. El capítulo también analiza las dimensiones de la cuadrícula y el bloque, y cómo se asignan los bloques a los multiprocesadores de transmisión (SM) en el dispositivo CUDA. Menciona que el sistema de ejecución de CUDA ajusta automáticamente la cantidad de bloques asignados a cada SM según la disponibilidad de recursos. El capítulo también proporciona un ejemplo de cómo asignar subprocesos a datos multidimensionales y acceder a bytes específicos dentro de los datos.
 
-El capítulo nos muestra varios ejemplos de tipos de aplicaciones que manejan grandes cantidades de datos, como edición de imágenes y videos, modelado científico, dinámica molecular y programación de aerolíneas. Destaca que muchos de estos elementos de datos se pueden procesar de forma independiente, lo que permite el cálculo paralelo.
+## 3.2 Mapping Threads to Multidimensional Data 
 
-El concepto de paralelismo de datos se explica como la reorganización de la computación en torno a evaluaciones independientes. Por ejemplo, se puede convertir un píxel de color a escala de grises o difuminar una imagen operando en píxeles individuales o en pequeñas vecindades de píxeles de forma independiente. Incluso operaciones aparentemente globales, como encontrar el brillo promedio de todos los píxeles de una imagen, se pueden dividir en cálculos más pequeños que se pueden ejecutar de forma independiente.
+El capitulo explica cómo se pueden organizar los subprocesos en una cuadrícula CUDA en una jerarquía de dos niveles, con una cuadrícula que consta de uno o más bloques y cada bloque consta de uno o más subprocesos.
 
-El capítulo también menciona que el libro se centra principalmente en enseñar conceptos relacionados con la programación CUDA C, pero proporciona apéndices que demuestran cómo estos conceptos se pueden aplicar a otros lenguajes como C++, FORTRAN, Python y OpenCL.
+El capítulo comienza explicando la organización de los hilos dentro de un bloque. Cada hilo tiene tres coordenadas: threadIdx.x, threadIdx.y y threadIdx.z. Estas coordenadas permiten que los subprocesos se distinguen entre sí e identifiquen la porción de datos que necesitan procesar.
 
-## 2.2 CUDA C Program Structure
+Luego, el capítulo analiza el mapeo de subprocesos a datos multidimensionales, particularmente en el contexto del procesamiento de imágenes. Explica que utilizar una cuadrícula 2D con bloques 2D suele ser conveniente para procesar píxeles en una imagen. El ejemplo dado es una imagen de 76x62, donde se usa un bloque de 16x16 con 16 hilos en la dirección x y 16 hilos en la dirección y. La cuadrícula está organizada en 5 bloques en la dirección x y 4 bloques en la dirección y.
 
-La estructura de un programa CUDA C refleja la coexistencia de un host (CPU) y uno o más dispositivos (GPU) en la computadora. Cada archivo fuente CUDA puede tener una combinación de código de host y de dispositivo.
+El capítulo también aborda la cuestión del acceso a datos multidimensionales en CUDA. Explica que las matrices multidimensionales asignadas dinámicamente deben linealizarse o "aplanarse" en matrices unidimensionales equivalentes en CUDA C. Esto se debe a que el número de columnas en una matriz 2D asignada dinámicamente no se conoce en el momento de la compilación.
 
-Una vez que se agregan las funciones del dispositivo y las declaraciones de datos a un archivo fuente, un compilador de C tradicional no puede compilarlo. En su lugar, debe ser compilado por un compilador CUDA C llamado NVCC (NVIDIA C Compiler). El compilador NVCC procesa el programa CUDA C, utilizando palabras clave CUDA para separar el código del host y el código del dispositivo.
+En general, el capítulo proporciona una comprensión de cómo se pueden asignar subprocesos a datos multidimensionales en la programación CUDA, centrándose en el procesamiento de imágenes y el acceso a matrices multidimensionales.
 
-El código del host, que es código ANSI C directo, se compila con los compiladores C/C++ estándar del host y se ejecuta como un proceso de CPU tradicional. Por otro lado, el código del dispositivo está marcado con palabras clave CUDA para funciones paralelas de datos, llamadas núcleos, y sus funciones auxiliares y estructuras de datos asociadas. El código del dispositivo es compilado por un componente de tiempo de ejecución de NVCC y ejecutado en un dispositivo GPU.
+## 3.3 Image Blur: A More Complex Kernel 
 
-La ejecución de un programa CUDA comienza con el código de host (código de serie de la CPU). Cuando se llama o inicia una función del kernel (código de dispositivo paralelo), es ejecutada por una gran cantidad de subprocesos en un dispositivo. Estos hilos forman colectivamente una cuadrícula. La cuadrícula está dividida en bloques y cada bloque contiene varios subprocesos. Los subprocesos dentro de un bloque pueden cooperar y comunicarse entre sí mediante la memoria compartida.
+Se analiza la organización de subprocesos dentro de un bloque en la programación CUDA. Explica que cada threadIdx consta de tres campos: threadIdx.x, threadIdx.y y threadIdx.z, que representan las coordenadas x, y, z del hilo. El capítulo también menciona que los bloques dentro de una cuadrícula tienen las mismas dimensiones y proporciona un ejemplo de un bloque organizado en una matriz de subprocesos de 4x2x2. Además, menciona que los dispositivos con una capacidad inferior a 2.0 permiten bloques de hasta 512 subprocesos.
 
-El capítulo también analiza la asignación y desasignación de memoria del dispositivo utilizando funciones como cudaMalloc y cudaFree. Explica cómo se pueden transferir datos entre el host y el dispositivo utilizando la función cudaMemcpy. El capítulo concluye mencionando la importancia de la verificación y el manejo de errores en los programas CUDA.
+## 3.4 Synchronization and Transparent Scalability 
 
-## 2.3 A Vector Addition Kernel 
-Esta sección analiza la implementación de una función del kernel para realizar la suma de vectores en CUDA C. Explica la estructura y sintaxis de la función del Kernel y cómo se puede utilizar para realizar cálculos paralelos en la GPU. El capítulo también proporciona ejemplos y fragmentos de código para ilustrar los conceptos y técnicas involucrados en la escritura de un núcleo de suma de vectores.
-## 2.4 Device Global Memory and Data Transfer
+Se analiza los parámetros de configuración de ejecución del kernel en la programación CUDA. Explica que las dimensiones de una cuadrícula y sus bloques están definidas por estos parámetros. Las coordenadas únicas en blockIdx y threadIdx permiten que los subprocesos de una cuadrícula se identifiquen a sí mismos y a sus dominios de datos. El programador es responsable de utilizar estas variables en las funciones del kernel para garantizar que los subprocesos puedan identificar correctamente la parte de los datos a procesar.
 
-En este capítulo se nos explica cómo asignar y desasignar memoria en el dispositivo, así como también cómo transferir datos entre el host y el dispositivo.
+El capítulo también destaca que los subprocesos en diferentes bloques no pueden sincronizarse entre sí, lo que permite una escalabilidad transparente de las aplicaciones CUDA. Para superar esta limitación, el método simple es terminar el kernel e iniciar un nuevo kernel para las actividades después del punto de sincronización.
 
-Se nos presenta el concepto de memoria del dispositivo, que es el espacio de memoria disponible en la GPU para almacenar datos. Explica que no se debe eliminar la referencia a la memoria del dispositivo en el código host para el cálculo y debe usarse principalmente para llamar a funciones API y funciones del kernel.
+Además, el capítulo explica que los subprocesos se asignan a Streaming Multiprocessors (SM) para su ejecución bloque por bloque. Cada dispositivo CUDA tiene limitaciones en la cantidad de bloques y subprocesos que sus SM pueden acomodar. Las limitaciones de recursos de cada dispositivo pueden convertirse en el factor limitante de un kernel.
 
-Se analiza el proceso de asignación de memoria del dispositivo utilizando la función cudaMalloc. Proporciona un ejemplo de asignación de memoria para una matriz flotante y explica que la dirección de la memoria asignada se almacena en una variable de puntero.
+En general, el Capítulo 3.4 proporciona una comprensión de cómo funcionan los parámetros de configuración de ejecución del kernel en la programación CUDA y las consideraciones para la sincronización de subprocesos y las limitaciones de recursos.
 
-A continuación, el capítulo explica el proceso de transferencia de datos desde el host al dispositivo utilizando la función cudaMemcpy. Describe los parámetros de la función, incluida la ubicación de destino, la ubicación de origen y la cantidad de bytes que se copiarán.
+## 3.5 Resource Assignment 
 
-Por último este capítulo también cubre la designación de memoria del dispositivo utilizando la función cudaFree. Explica que una vez que se completa el procesamiento de datos en el dispositivo, se puede liberar la memoria para que esté disponible para otros cálculos.
+Se nos habla sobre lla consulta de propiedades del dispositivo en la programación CUDA. Explica que los dispositivos CUDA tienen recursos de ejecución organizados en Streaming Multiprocessors (SM) y se pueden asignar múltiples bloques de subprocesos a cada SM. El documento menciona que cada dispositivo CUDA establece un límite en la cantidad de bloques que se pueden asignar a cada SM. Si hay escasez de recursos necesarios para la ejecución simultánea de bloques, el tiempo de ejecución de CUDA reduce automáticamente la cantidad de bloques asignados a cada SM. El documento también menciona que la cantidad de bloques que se pueden ejecutar activamente en un dispositivo CUDA es limitada. El sistema de ejecución mantiene una lista de bloques que deben ejecutarse y asigna nuevos bloques a los SM a medida que los bloques previamente asignados completan la ejecución. Además, el documento analiza las limitaciones en la cantidad de subprocesos que los SM pueden rastrear y programar simultáneamente. Explica que se necesitan recursos de hardware para que los SM mantengan los índices de subprocesos y bloques y realicen un seguimiento de su estado de ejecución. El documento proporciona un ejemplo en el que se asignan tres bloques de subprocesos a cada SM. También menciona que la cantidad máxima de subprocesos permitidos en un bloque puede variar según el dispositivo, y la cantidad de SM y la frecuencia de reloj del dispositivo proporcionan una indicación de su capacidad de ejecución de hardware. Finalmente, el documento explica cómo consultar propiedades del dispositivo, como la cantidad máxima de subprocesos permitidos en un bloque, la cantidad de SM en el dispositivo y la frecuencia de reloj del dispositivo.
 
-## 2.5 Kernel Functions and Threading
+## 3.6 Querying Device Properties
 
-En CUDA, una función del kernel se encarga de especificar el código que ejecutarán todos los subprocesos durante una fase paralela. Todos los subprocesos ejecutan el mismo código, lo que hace que la programación CUDA sea una instancia del modelo de datos múltiples de programa único (SPMD).
+Aquí se nos explica las  propiedades del dispositivo en la programación CUDA. Explica que los recursos de ejecución en los dispositivos CUDA están organizados en Streaming Multiprocessors (SM), y cada dispositivo establece un límite en la cantidad de bloques que se pueden asignar a cada SM. El capítulo destaca la importancia de consultar las propiedades del dispositivo, como la cantidad máxima de subprocesos permitidos en un bloque, la cantidad de SM en el dispositivo y la frecuencia de reloj del dispositivo. También menciona que el código host puede encontrar la cantidad máxima de subprocesos permitidos en cada dimensión de un bloque. El capítulo enfatiza la necesidad de considerar estas propiedades al determinar las dimensiones de bloque más apropiadas para un rendimiento óptimo. Además, menciona que el sistema de tiempo de ejecución CUDA mantiene una lista de bloques que deben ejecutarse y asigna nuevos bloques a los SM a medida que los bloques previamente asignados completan la ejecución.
 
-El capítulo proporciona una descripción general de cómo se inician las funciones del kernel y el efecto de iniciar estas funciones. Menciona que la función del kernel es invocada por el código del host y ejecutada por múltiples subprocesos en la GPU. Los autores también analizan el concepto de bloques de subprocesos y configuración de cuadrícula, que determinan la cantidad de subprocesos y bloques de subprocesos utilizados en la ejecución.
+## 3.7 Thread Scheduling and Latency Tolerance
 
-Además, el capítulo destaca la importancia de la verificación y el manejo de errores en la programación CUDA. Menciona que las funciones de la API CUDA devuelven indicadores que indican si se ha producido un error durante la solicitud. Los autores enfatizan la necesidad de que los programas verifiquen y manejen los errores de manera adecuada.
+En este capítulo se nos habla de la programación de subprocesos y la tolerancia a la latencia en la programación CUDA. Explica que la programación de subprocesos es un concepto de implementación y debe entenderse en el contexto de implementaciones de hardware específicas. En la mayoría de las implementaciones de CUDA, un bloque asignado a un Streaming Multiprocessor (SM) se divide en 32 unidades de subprocesos llamadas warps. El tamaño de las deformaciones es específico de la implementación y se puede obtener de la variable de consulta del dispositivo.
 
-## 2.6 Kernel Launch
+El capítulo destaca que las deformaciones son la unidad de programación de subprocesos en los SM. Describe cómo los bloques se dividen en urdimbres y cada urdimbre consta de 32 hilos. Se introduce el concepto de tolerancia a la latencia, que se refiere a la capacidad de un programa de ocultar la latencia de los accesos a la memoria u otras operaciones superponiéndo las con otros cálculos. El capítulo explica que al ejecutar múltiples warps simultáneamente, el SM puede cambiar entre warps para ocultar la latencia de los accesos a la memoria y mejorar el rendimiento general.
 
-Se nos explica cómo iniciar una función del kernel, que es el código que ejecutarán todos los subprocesos durante una fase paralela. El capítulo proporciona un ejemplo de un kernel de adición de vectores y demuestra cómo asignar memoria del dispositivo, transferir datos del host al dispositivo, invocar el kernel y transferir el resultado nuevamente al host. También cubre la verificación y el manejo de errores en la programación CUDA, enfatizando la importancia de verificar y manejar los errores que pueden ocurrir durante la ejecución de las funciones de la API CUDA.
-
-Estructura de las funciones del kernel:
-
-Las funciones del kernel se definen utilizando la palabra clave calificadora "global" en CUDA C.
-
-La palabra clave "global" indica que la función es una función del kernel CUDA y se ejecutará en la GPU.
-
-Las funciones del kernel solo se pueden llamar desde el código host, excepto en sistemas CUDA que admiten paralelismo dinámico.
-
-Las funciones del kernel también pueden llamar a otras funciones del dispositivo u otras funciones del kernel.
-
-Ejecución de funciones del kernel:
-
-Cuando se llama o inicia una función del kernel desde el código del host, es ejecutada por una gran cantidad de subprocesos en la GPU.
-
-Todos los subprocesos generados por el lanzamiento de un kernel se denominan colectivamente grilla.
-
-La cuadrícula se divide en unidades más pequeñas llamadas bloques de hilos.
-
-Cada bloque de subprocesos consta de varios subprocesos que se pueden ejecutar en paralelo.
-
-La cantidad de bloques de subprocesos y la cantidad de subprocesos por bloque se pueden especificar durante el lanzamiento del kernel utilizando los parámetros de configuración de ejecución.
-
-La ejecución de bloques de subprocesos dentro de una cuadrícula se puede realizar en paralelo, según los recursos de ejecución disponibles en la GPU.
-
-Una GPU pequeña con recursos limitados puede ejecutar solo uno o dos bloques de subprocesos en paralelo, mientras que una GPU más grande puede ejecutar varios bloques de subprocesos simultáneamente.
-
-Esta escalabilidad en la velocidad de ejecución permite a los kernels CUDA aprovechar diferentes configuraciones de hardware.
-## 2.7 Summary
-
-Este capítulo analiza las extensiones esenciales del lenguaje C que admiten la computación paralela. El capítulo destaca las siguientes extensiones:
-
-Declaraciones de funciones: el capítulo resume las declaraciones de funciones que se han analizado, que se utilizan para definir funciones del núcleo y especificar su configuración de ejecución.
-
-Lanzamiento del kernel: el capítulo proporciona una descripción general del lanzamiento del kernel, que implica especificar la cantidad de bloques de procesos y subprocesos por bloque para ejecutar la función del kernel.
-
-Variables integradas (predefinidas): el capítulo menciona la presencia de variables integradas en CUDA, que tienen un significado y propósito especiales. Estas variables suelen ser de solo lectura y no deben usarse para otros fines.
-
+En general, el Capítulo 3.7 proporciona información sobre el mecanismo de programación de subprocesos en la programación CUDA y la importancia de la tolerancia a la latencia para una ejecución paralela eficiente.
 
 ## Conclusión
 
-En mi opinión este documento me gusto mas debido a que siento que la información está más concentrada, con una mejor redacción y de fácil entendimiento que los libros pasados, siendo de esta forma mucho más sencillo entender lo que se explica a lo largo del documento.
+Me quedo claro que controlar la ejecución paralela en la programación CUDA implica comprender la organización de los subprocesos, coordinar las actividades de los subprocesos mediante la sincronización, considerar la asignación y ocupación de recursos, optimizar la programación de los subprocesos y tolerar la latencia de la memoria. Dominar estos conceptos y técnicas permite el desarrollo de aplicaciones paralelas de alto rendimiento en CUDA.
